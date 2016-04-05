@@ -6,6 +6,10 @@
 <%@ page import="java.nio.charset.StandardCharsets" %>
 <%@ page import="java.util.UUID" %>
 <%@ page import="org.apache.commons.codec.binary.Base64" %>
+<%@ page import="org.apache.commons.httpclient.HttpClient" %>
+<%@ page import="org.apache.commons.httpclient.methods.GetMethod" %>
+<%@ page import="org.apache.commons.httpclient.params.HttpMethodParams" %>
+<%@ page import="org.apache.commons.httpclient.DefaultHttpMethodRetryHandler" %>
 <%
     String code = null;
     String accessToken = null;
@@ -440,6 +444,25 @@
                     } catch (Exception e) {
                         //ignore
                     }
+
+                    //  Creates an HTTP REST call to micro service
+                    // Create an instance of HttpClient.
+                    HttpClient client = new HttpClient();
+
+                    // Create a method instance.
+                    GetMethod method = new GetMethod("http://localhost:8081/hello/" +
+                            name.substring(2, name.length()-2));
+                    method.setRequestHeader("X-JWT-Assertion", idToken);
+
+                    String responseString =  null;
+                    try {
+                        client.executeMethod(method);
+                        byte[] responseBody = method.getResponseBody();
+                        responseString = new String(responseBody);
+                    } catch (Exception e) {
+                        //ignore
+                    }
+
             %>
 
             <div>
@@ -456,14 +479,12 @@
                             <td><input id="accessToken" name="accessToken" style="width:350px" value="<%=accessToken%>"/>
                         </tr>
                         <tr>
-                            <td><label>UserInfo Endpoint :</label></td>
-                            <td><input id="resource_url" name="resource_url" type="text" style="width:350px"/>
+                            <td><label>Response from micro service :</label></td>
+                            <td><input id="responseString" name="responseString" type="text" style="width:350px" value="<%=responseString%>"/>
                         </tr>
 
                         <tr>
-                            <td>
-                                <input type="submit" class="button" value="Get UserInfo">
-                            </td>
+
                             <%
                                 if (isOIDCLogoutEnabled) {
                             %>
